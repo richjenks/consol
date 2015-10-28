@@ -1,0 +1,12 @@
+{
+	"files": [
+		"src/Helper.php",
+		"src/Command.php",
+		"src/Init.php",
+		"src/Squish.php",
+		"src/Watch.php"
+	],
+	"main": "src/index.php",
+	"output": "squish.phar",
+	"stub": true
+}
