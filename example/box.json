@@ -1,0 +1,6 @@
+{
+	"directories": "App",
+	"main"       : "index.php",
+	"output"     : "MyApp.phar",
+	"stub"       : true
+}
