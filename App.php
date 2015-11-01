@@ -158,6 +158,16 @@ class App {
 	}
 
 	/**
+	 * @return array List of all registered commands
+	 */
+	public function commands() {
+		$commands = [];
+		foreach ($this->map as $command)
+			$commands[] = $command['command'];
+		return $commands;
+	}
+
+	/**
 	 * Default handler for root
 	 */
 	private function root() { $this->say($this->directory()); }
@@ -165,7 +175,12 @@ class App {
 	/**
 	 * Default handler for unknown commands
 	 */
-	private function unknown() { $this->say('Unkown command', 'red') . PHP_EOL; }
+	private function unknown() {
+		$this->say('Unkown command', 'red') . PHP_EOL;
+		if ($suggestion = $this->suggest($this->command, $this->commands())) {
+			$this->say(PHP_EOL . 'Did you mean: ' . $suggestion . '?');
+		}
+	}
 
 	/**
 	 * Show directory of commands with descriptions

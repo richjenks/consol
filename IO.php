@@ -90,6 +90,22 @@ trait IO {
 	}
 
 	/**
+	 * Suggests an item from a list similar to the input
+	 *
+	 * @param string $needle   Provided option
+	 * @param array  $haystack All options
+	 */
+	public function suggest($needle, $haystack) {
+		$needle_metaphone = metaphone($needle);
+		foreach ($haystack as $word) {
+			$word_metaphone = metaphone($word);
+			$lev = levenshtein($word_metaphone, $needle_metaphone);
+			if ($lev < 2) return $word;
+		}
+		return false;
+	}
+
+	/**
 	 * For testing purposes
 	 *
 	 * @return array Commands, current command, params and options
