@@ -43,7 +43,7 @@ A Consol app could look like this:
 
 ```php
 #!/usr/local/bin/php
-<?php require 'vendor/autoload.php'
+<?php require 'vendor/autoload.php';
 
 $app->map('hello', function ($app) {
     return 'Hello World';
@@ -57,6 +57,8 @@ Calling `php app.php hello` from the command line will run this command. The `ma
 1. Command to trigger the route
 2. Callback to map to the command
 3. Optional description of the command
+
+> Commands can only contain alphanumerics, colons, hyphens and underscores.
 
 ## Magic Commands
 
@@ -77,21 +79,77 @@ Both have default handlers which are overridden by mapping them to your own code
 
 ## Using `$app`
 
-Passing `$app` to your commands is optional but recommended, as it will expose a number of useful functions to your commands:
+The `$app` object is made available to your commands and it exposes a number of useful functions:
 
 ### Say
 
-Outputs text to the console and should be used instead of `echo`, `print`, etc. because it allows responses to be edited by Middleware (which has its own section below). It accepts 2 parameters:
+Outputs text to the console and should be used instead of `echo`, `print`, etc. because it outputs immediately (rather than at the end of the script) and allows responses to be edited by Middleware (which has its own section below). It accepts 2 parameters:
 
 1. The text to be output
 2. An optional color for the text
 
 Available colors are `aqua`, `black`, `blue`, `cyan`, `emerald`, `gray`, `lilac`, `green`, `maroon`, `navy`, `orange`, `purple`, `red`, `silver`, `white` and `yellow`.
 
-### Read
+For example: `$app->say('Oh hai!', 'green');`
+
+### Color
+
+Identical to `say()` except it returns the text rather than outputting immediately.
+
+### Ask
+
+Prompt the user to provide information, for example:
+
+```php
+$name = ask('What is your name: ');
+say("Hello, $name!");
+```
+
+It has three parameters but only the first is required:
+
+1. The text to display to the user
+2. Default value if user enters nothing (or `null` for no default value)
+3. Regular Expression against which the value is checked
+
+> Providing `null` as the default value means that no default value will be considered — it does not mean it will return `null` if no value is provided.
+
+Here's a more practical example:
+
+```php
+$name = $app->ask('What is your name: ', null, '.+');
+$app->say("Hello, $name!");
+```
+
+The above example will prompt the user for their name, but if none is given then it will ask again. The answer must be at least one character. `ask` isn't very clever, so you are free to define whatever logic you like.
+
+Or to ask for confirmation:
+
+```php
+$sure = $app->ask('Are you sure? [y/n] ', 'n', 'y|n');
+$app->say(($sure === 'y') ? 'You are sure' : 'You are unsure');
+```
+
+Here are a few example regular expressions for common requirements:
+
+- `.*`  Accept anything, including empty values
+- `.+` Accept anything, must be at least one character
+- `y|n` Accepts anything containing "y", "n" (basic confirmation)
+- `^yes$|^no$|^maybe$` Accepts only "yes", "no" or "maybe"
+
+> Neither validation rules nor default values are shown to the user — you are free to provide whatever information you wish in the first "question" parameter.
+
 ### Table
 ### Suggest
 ### Get Request
+
+This is a testing function that can be used to analyse the request. It returns an array with the keys `command`, `params`, `options` and `map`:
+
+```php
+var_dump($app->get_request());
+//
+```
+
+The `param()` and `option()` functions are preferred as they integrate will middleware and are generally "nicer" from a syntax perspective.
 
 ## Command Directory
 
@@ -107,7 +165,7 @@ The directory makes use of the `table()` function (documented below) to output t
 
 ```php
 $app->map('directory', function ($app) {
-    return $app->directory();
+    $app->say($app->directory());
 });
 ```
 

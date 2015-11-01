@@ -45,8 +45,8 @@ class App {
 		$this->command = (!empty($argv[1])) ? $argv[1] : '';
 
 		// Set default handlers
-		$this->root    = function() { global $app; return $app->root(); };
-		$this->unknown = function() { global $app; return $app->unknown(); };
+		$this->root    = function() { global $app; $app->root(); };
+		$this->unknown = function() { global $app; $app->unknown(); };
 
 		// Get request minus file
 		$request = $argv;
@@ -110,7 +110,7 @@ class App {
 		// Map known command
 		else {
 			$command = strtolower($command);
-			$command = preg_replace('/[^A-Za-z0-9:]/', '', $command);
+			$command = preg_replace('/[^A-Za-z0-9:_-]/', '', $command);
 			$this->map[] = [
 				'command'     => $command,
 				'callback'    => $callback,
@@ -126,17 +126,17 @@ class App {
 	public function run() {
 
 		// No command so call root handler
-		if (empty($this->command)) echo call_user_func($this->root, $this);
+		if (empty($this->command)) $this->say(call_user_func($this->root, $this));
 
 		// Look for known command
 		elseif ($callback = $this->callback($this->command, $this->map))
-			echo call_user_func($callback, $this);
+			$this->say(call_user_func($callback, $this));
 
 		// Unknown command so call unknown handler
-		else echo call_user_func($this->unknown, $this);
+		else $this->say(call_user_func($this->unknown, $this));
 
 		// Next prompt on new line
-		echo PHP_EOL;
+		$this->say(PHP_EOL);
 
 	}
 
@@ -160,12 +160,12 @@ class App {
 	/**
 	 * Default handler for root
 	 */
-	private function root() { return $this->directory(); }
+	private function root() { $this->say($this->directory()); }
 
 	/**
 	 * Default handler for unknown commands
 	 */
-	private function unknown() { return $this->say('Unkown command', 'red') . PHP_EOL; }
+	private function unknown() { $this->say('Unkown command', 'red') . PHP_EOL; }
 
 	/**
 	 * Show directory of commands with descriptions
@@ -174,16 +174,26 @@ class App {
 		if (empty($this->map)) {
 			return false;
 		} else {
-			$response = $this->say('Commands:', 'orange') . PHP_EOL;
-			$commands = [];
+			$table     = $this->say('Commands:' . PHP_EOL, 'orange');
+			$commands  = [];
+			$directory = [];
+
+			// Sort commands
 			foreach ($this->map as $command) {
-				$commands[] = [
-					'  ' . $this->say($command['command'], 'green'),
-					$command['description'],
+				$commands[$command['command']] = $command['description'];
+			}
+			ksort($commands);
+
+			// Prepare commands for table
+			foreach ($commands as $command => $description) {
+				$directory[] = [
+					$this->color('  ' . $command, 'green'),
+					$description,
 				];
 			}
-			$response .= $this->table($commands);
-			return $response;
+
+			$table .= $this->table($directory);
+			return $table;
 		}
 	}
 

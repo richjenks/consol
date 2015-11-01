@@ -26,7 +26,23 @@ trait IO {
 	 * @param string $color Color of text
 	 */
 	public function say($text, $color = 'none') {
-		echo $this->color($text, $color);
+		fwrite(STDOUT, $this->color($text, $color));
+	}
+
+	/**
+	 * Gets input from user
+	 *
+	 * @param string $question Text to display
+	 * @param string $pattern Regex pattern against which input is tested
+	 * @param string $default If input is empty use this value. `null` for no default
+	 */
+	function ask($question, $default = null, $pattern = '.+') {
+		do {
+			fwrite(STDOUT, $question);
+			$answer = trim(fgets(STDIN));
+			if (!is_null($default) && empty($answer)) $answer = $default;
+		} while (!preg_match('/' . $pattern . '/', $answer));
+		return $answer;
 	}
 
 	/**
