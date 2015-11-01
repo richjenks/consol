@@ -8,15 +8,15 @@
 // index.php
 $app = new RichJenks\Consol\App;
 
-$app->map(':', function () {
-    return 'Hello World';
+$app->map('hello', function ($app) {
+    $app->say('Hello World');
 });
 
 ```
 
 ```bash
 # terminal
-php index.php
+php index.php hello
 # Hello, World!
 ```
 
