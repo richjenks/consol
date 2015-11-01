@@ -73,11 +73,16 @@ trait IO {
 
 	}
 
-	public function progress($done, $total){
-		// $perc = ceil(($done / $total) * 100);
-		// $bar = "[" . ($perc > 0 ? str_repeat("=", $perc - 1) : "") . ">";
-		// $bar .= str_repeat(" ", 100 - $perc) . "] - $perc% - $done/$total";
-		// echo "\033[0G$bar"; // Note the \033[0G. Put the cursor at the beginning of the line
+	/**
+	 * Shows a progress bar
+	 *
+	 * Adapted from this answer to be shorter (50 chars rather than 100):
+	 * @see http://stackoverflow.com/a/27147177/1562799
+	 *
+	 * @param int $done Numerator
+	 * @param int $total Denominator
+	 */
+	public function progress($done, $total) {
 		$perc = round(($done / $total) * 100);
 		$bar = "[" . ($perc > 0 ? str_repeat("=", ($perc - 1) / 2) : "") . ">";
 		$bar .= str_repeat(" ", (100 - $perc) / 2) . "] - $perc% - $done/$total ";
