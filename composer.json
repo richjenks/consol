@@ -14,5 +14,5 @@
     ],
     "minimum-stability": "dev",
     "require": { "php": ">=5.5.0" },
-    "autoload": { "psr-4": { "Consol": "" } }
+    "autoload": { "psr-4": { "Consol\\": "" } }
 }
