@@ -26,3 +26,5 @@ php index.php hello
 - Simplifies parameters and options
 - Generates command directory
 - Packages your app as a PHAR
+
+> Read full documentation at https://richjenks.github.io/consol/
