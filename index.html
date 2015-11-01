@@ -184,6 +184,21 @@ php app.php hello
 </blockquote>
 
 <h3>
+<a id="progress" class="anchor" href="#progress" aria-hidden="true"><span class="octicon octicon-link"></span></a>Progress</h3>
+
+<p>Shows a progress bar to the user and accepts two values: current progress and total. For example:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-smi">$app</span><span class="pl-k">-&gt;</span>say(<span class="pl-s"><span class="pl-pds">'</span>Progressing...<span class="pl-pds">'</span></span> <span class="pl-k">.</span> <span class="pl-c1">PHP_EOL</span>);</span>
+<span class="pl-s1"><span class="pl-smi">$progress</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>;</span>
+<span class="pl-s1"><span class="pl-k">while</span> (<span class="pl-smi">$progress</span> <span class="pl-k">&lt;=</span> <span class="pl-c1">70</span>) {</span>
+<span class="pl-s1">    <span class="pl-smi">$app</span><span class="pl-k">-&gt;</span>progress(<span class="pl-smi">$progress</span>, <span class="pl-c1">70</span>);</span>
+<span class="pl-s1">    <span class="pl-smi">$progress</span> <span class="pl-k">+</span><span class="pl-k">=</span> <span class="pl-c1">3</span>;</span>
+<span class="pl-s1">    <span class="pl-c1">sleep</span>(<span class="pl-c1">1</span>);</span>
+<span class="pl-s1">}</span>
+<span class="pl-s1"><span class="pl-smi">$app</span><span class="pl-k">-&gt;</span>progress(<span class="pl-c1">70</span>, <span class="pl-c1">70</span>);</span>
+<span class="pl-s1"><span class="pl-smi">$app</span><span class="pl-k">-&gt;</span>say(<span class="pl-c1">PHP_EOL</span> <span class="pl-k">.</span> <span class="pl-s"><span class="pl-pds">'</span>Progress complete<span class="pl-pds">'</span></span> <span class="pl-k">.</span> <span class="pl-c1">PHP_EOL</span>);</span></pre></div>
+
+<h3>
 <a id="table" class="anchor" href="#table" aria-hidden="true"><span class="octicon octicon-link"></span></a>Table</h3>
 
 <h3>
