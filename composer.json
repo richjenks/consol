@@ -1,0 +1,18 @@
+{
+    "name": "richjenks/consol",
+    "description": "Micro framework for command line PHP apps",
+    "keywords": ["console", "commandline", "command line"],
+    "homepage": "https://richjenks.github.io/consol",
+    "type": "library",
+    "license": "Apache",
+    "authors": [
+        {
+            "name": "Rich Jenks",
+            "email": "rich@richjenks.com",
+            "homepage": "https://richjenks.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": { "php": ">=5.5.0" },
+    "autoload": { "psr-4": { "Consol": "" } }
+}

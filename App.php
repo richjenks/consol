@@ -1,4 +1,4 @@
-<?php namespace RichJenks\Consol;
+<?php namespace Consol;
 
 class App {
 

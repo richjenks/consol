@@ -1,4 +1,4 @@
-<?php namespace RichJenks\Consol;
+<?php namespace Consol;
 
 /**
  * User-facing input/output functions
@@ -71,6 +71,17 @@ trait IO {
 
 		return $table;
 
+	}
+
+	public function progress($done, $total){
+		// $perc = ceil(($done / $total) * 100);
+		// $bar = "[" . ($perc > 0 ? str_repeat("=", $perc - 1) : "") . ">";
+		// $bar .= str_repeat(" ", 100 - $perc) . "] - $perc% - $done/$total";
+		// echo "\033[0G$bar"; // Note the \033[0G. Put the cursor at the beginning of the line
+		$perc = round(($done / $total) * 100);
+		$bar = "[" . ($perc > 0 ? str_repeat("=", ($perc - 1) / 2) : "") . ">";
+		$bar .= str_repeat(" ", (100 - $perc) / 2) . "] - $perc% - $done/$total ";
+		echo "\033[0G$bar"; // Note the \033[0G. Put the cursor at the beginning of the line
 	}
 
 	/**
