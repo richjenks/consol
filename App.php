@@ -1,176 +1,218 @@
-<?php namespace Consol;
+<?php namespace RichJenks\Consol;
 
 class App {
 
-	/**
-	 * @var array App config
-	 */
-	private $config;
+	// Input/output features
+	use IO;
 
 	/**
-	 * @var array Data for routes
+	 * @var array All mapped commands
 	 */
-	private $routes;
+	private $map = [];
 
 	/**
-	 * @var array Additional arguments
+	 * @var string Current command
 	 */
-	public $args;
+	private $command;
 
 	/**
-	 * Registers the app
+	 * @var array Strings provided after command
 	 */
-	public function __construct($config) {
+	private $params;
 
-		// Store args and config
+	/**
+	 * @var array Options prefixed with `--`
+	 */
+	private $options;
+
+	/**
+	 * @var callable Handler for root (no command)
+	 */
+	private $root;
+
+	/**
+	 * @var callable Handler for unknown command
+	 */
+	private $unknown;
+
+	/**
+	 * Extract params and options from request
+	 */
+	public function __construct() {
+
+		// Get command
 		global $argv;
-		$args = $argv;
-		array_shift($args);
-		array_shift($args);
-		$this->args = $args;
-		$this->config = $config;
+		$this->command = (!empty($argv[1])) ? $argv[1] : '';
 
-		// Include files
-		$path = dirname($this->config['main']) . DIRECTORY_SEPARATOR . $this->config['code'];
-		$files = scandir($path);
-		foreach ($files as $file) {
-			if (!in_array($file, ['.', '..'])) {
-				require $path . DIRECTORY_SEPARATOR . $file;
-			}
-		}
+		// Set default handlers
+		$this->root    = function() { global $app; return $app->root(); };
+		$this->unknown = function() { global $app; return $app->unknown(); };
+
+		// Get request minus file
+		$request = $argv;
+		array_shift($request);
+
+		// Split request into params and options
+		$this->parse_request($request);
 
 	}
 
 	/**
-	 * Maps a command to a route
+	 * Parses request for params and options
+	 *
+	 * @param array $request Command line arguments
+	 */
+	private function parse_request($request) {
+		foreach ($request as $param) {
+
+			// If option, grab value or set to true
+			if (substr($param, 0, 2) === '--') {
+				$param = substr($param, 2);
+				if (strpos($param, '=')) {
+					$param = explode('=', $param);
+					$this->options[$param[0]] = $param[1];
+				} else {
+					$this->options[$param] = true;
+				}
+			}
+
+			// If flag, add to options
+			elseif (substr($param, 0, 1) === '-') {
+				$param  = substr($param, 1);
+				$params = str_split($param);
+				foreach ($params as $param)
+					$this->options[$param] = true;
+			}
+
+			// Not option, just store param
+			else {
+				$this->params[] = $param;
+			}
+
+		}
+
+	}
+	/**
+	 * Maps a command
+	 *
+	 * @param string   $command     Console command to be mapped
+	 * @param callable $callback    Code triggered by command
+	 * @param string   $description Description of command
 	 */
 	public function map($command, $callback, $description = '') {
-		$this->routes[] = [
-			'command'     => $command,
-			'callback'    => $callback,
-			'description' => $description,
-		];
+
+		// Custom handler for root
+		if ($command === ':') $this->root = $callback;
+
+		// Custom handler for unkown command
+		elseif ($command === '?') $this->unknown = $callback;
+
+		// Map known command
+		else {
+			$command = strtolower($command);
+			$command = preg_replace('/[^A-Za-z0-9:]/', '', $command);
+			$this->map[] = [
+				'command'     => $command,
+				'callback'    => $callback,
+				'description' => $description,
+			];
+		}
+
 	}
 
 	/**
-	 * Starts the app
+	 * Executes the command
 	 */
 	public function run() {
-		global $argv;
 
-		// If command is set, check for mapped route
-		if (!empty($argv[1])) {
-			$found = false;
-			foreach ($this->routes as $key => $route) {
+		// No command so call root handler
+		if (empty($this->command)) echo call_user_func($this->root, $this);
 
-				// If command is mapped, run it and stop looking
-				if ($route['command'] === $argv[1]) {
-					call_user_func($route['callback']);
-					$found = true;
-					break;
-				}
+		// Look for known command
+		elseif ($callback = $this->callback($this->command, $this->map))
+			echo call_user_func($callback, $this);
 
+		// Unknown command so call unknown handler
+		else echo call_user_func($this->unknown, $this);
+
+		// Next prompt on new line
+		echo PHP_EOL;
+
+	}
+
+	/**
+	 * Gets the callback for a given command
+	 *
+	 * @param string $current  Current command
+	 * @param array  $commands All mapped commands
+	 *
+	 * @return callable Callback for the given command
+	 */
+	private function callback($current, $commands) {
+		foreach ($commands as $command) {
+			if ($command['command'] === $current) {
+				return $command['callback'];
 			}
+		}
+		return false;
+	}
 
-			// Command not found, show error
-			if (!$found) {
-				echo $this->say("Unkown command: '$argv[1]'", 'red');
+	/**
+	 * Default handler for root
+	 */
+	private function root() { return $this->directory(); }
+
+	/**
+	 * Default handler for unknown commands
+	 */
+	private function unknown() { return $this->say('Unkown command', 'red') . PHP_EOL; }
+
+	/**
+	 * Show directory of commands with descriptions
+	 */
+	public function directory() {
+		if (empty($this->map)) {
+			return false;
+		} else {
+			$response = $this->say('Commands:', 'orange') . PHP_EOL;
+			$commands = [];
+			foreach ($this->map as $command) {
+				$commands[] = [
+					'  ' . $this->say($command['command'], 'green'),
+					$command['description'],
+				];
 			}
-
-		// No command given, show command directory
-		} else { $this->directory(); }
-
-		// End with a newline
-		echo PHP_EOL;
-
-	}
-
-	/**
-	 * Prepares text to be output to the console
-	 *
-	 * @param string $text  Text to output
-	 * @param string $color Color of text
-	 *
-	 * @return string Colored text
-	 */
-	public function say($text, $color = 'none') {
-		$colors = [
-			'none'    => '0',
-			'aqua'    => '1;36',
-			'black'   => '0;30',
-			'blue'    => '1;34',
-			'cyan'    => '0;36',
-			'emerald' => '1;32',
-			'gray'    => '1;30',
-			'lilac'   => '1;35',
-			'green'   => '0;32',
-			'maroon'  => '0;31',
-			'navy'    => '0;34',
-			'orange'  => '0;33',
-			'purple'  => '0;35',
-			'red'     => '1;31',
-			'silver'  => '0;37',
-			'white'   => '1;37',
-			'yellow'  => '1;33',
-		];
-		return sprintf("\033[%sm%s\033[0m", $colors[$color], $text);
-	}
-
-	/**
-	 * Shows command directory
-	 */
-	private function directory() {
-
-		// Header
-		echo $this->say($this->config['name'], 'green');
-		echo $this->say(' version ');
-		echo $this->say($this->config['version'], 'green');
-
-		// Get list of commands
-		$commands = [];
-		foreach ($this->routes as $route) {
-			$commands[$route['command']] = $route['description'];
+			$response .= $this->table($commands);
+			return $response;
 		}
-		ksort($commands);
+	}
 
-		// Show commands directory
-		echo PHP_EOL;
-		echo PHP_EOL;
-		echo $this->say('Commands:', 'orange');
-		echo PHP_EOL;
-		foreach ($commands as $command => $description) {
-			echo $this->say('  ' . $command . "\t\t", 'green');
-			echo $this->say($description);
-			echo PHP_EOL;
+	/**
+	 * Get param(s)
+	 * Note that the command will be at position zero
+	 *
+	 * @param int $position Which param to get, omit for all
+	 */
+	public function param($position = false) {
+		if ($position === false) return $this->params;
+		if (isset($this->params[$position]))
+			return $this->params[$position];
+		return null;
+	}
+
+	/**
+	 * Get option (or null) checked in the order provided
+	 *
+	 * @param  string $options Names of option to search for
+	 * @return string Option   value or null
+	 */
+	public function option($options = []) {
+		$options = (array) $options;
+		foreach ($options as $option) {
+			if (isset($this->options[$option]))
+				return $this->options[$option];
 		}
-
-	}
-
-	/**
-	 * Checks if a given argument is provided
-	 * optionally specify a position
-	 *
-	 * @param string $argument Argument to check
-	 * @param int    $position Position of argument
-	 *
-	 * @return bool Whether argument was provided
-	 */
-	public function arg($argument, $position = false) {
-		// if ($position) {
-		// 	return (!empty($this->args[$position])
-		// 		&& $this->args[$position] === $argument);
-		// }
-		return in_array($argument, $this->args);
-	}
-
-	/**
-	 * Checks if a given option is provided
-	 *
-	 * @param string $option Option to check
-	 * @return bool Whether option was provided
-	 */
-	public function option($option) {
-		return in_array('--' . $option, $this->args);
+		return null;
 	}
 
 }
