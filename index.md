@@ -257,3 +257,15 @@ Note that Consol can't distinguish between a flag option and an empty value opti
 ## Middleware
 
 Middleware allows you to edit a request before it is routed through the map and the response output before it is shown to the console. Middleware in console applications is not as important as with web applications because of the proportion of things happening in the background and things visible to the user, but it is still a useful tool that allows multiple commands to be edited by the same filter(s).
+
+## Notes
+
+Short params with values, e.g. `-xvalue` are not supported and each character would be treated as a separate flag
+Long options are strings if a value is provided or true if no value provided, but cannot be stacked
+Short options are either true or false and are stackable
+There is no relationship between short and long options (e.g. verbosity) so you are free to define behaviour yourself
+Later options override earlier options
+Parameters ignore option position and are parsed as if options are always at the end of the command
+CLImate is used for all IO
+Settings via $app->setting()
+$app->var for custom variables, e.g. to pass data between commands
