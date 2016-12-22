@@ -1,0 +1,8 @@
+title: Consol
+description: Micro framework for command line PHP apps
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-cayman
+
+gems:
+  - jekyll-mentions
