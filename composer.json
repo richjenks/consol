@@ -4,7 +4,7 @@
     "keywords": ["console", "commandline", "command line"],
     "homepage": "https://richjenks.github.io/consol",
     "type": "library",
-    "license": "Apache",
+    "license": "Apache-2.0",
     "authors": [
         {
             "name": "Rich Jenks",
